@@ -107,6 +107,8 @@ app.post("/api/insurance-query", async (req, res) => {
     //4)Send to our LLM to get the answer
     const answer = await getAnswerFromLLM(question, context);
 
+    //Answer maltab generation
+
     //if the code runs till here, everything is fine we have no error
     res.status(200).json({
       status: "success",
