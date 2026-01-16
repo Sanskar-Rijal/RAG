@@ -3,6 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
+import { getCollection } from "./db.js";
 
 dotenv.config({ path: "./config.env" });
 
@@ -75,8 +76,51 @@ async function getAnswerFromLLM(query, context) {
   return response.text;
 }
 
-getAnswerFromLLM(
-  "Who is Sanskar?",
-  "Sanskar is a software develoepr form ioe erc, he is a very very creative person, and very very very intelligent"
-);
+//post request to handle user queries
+app.post("/api/insurance-query", async (req, res) => {
+  const { question } = req.body;
+  if (!question) {
+    return res.status(400).json({
+      status: "fail",
+      message: "Question is required",
+    });
+  }
+  //try catch block
+  try {
+    //R-Retrival
+    //1)Embedded the query
+    const queryEmbedding = await embeddedQuery(question);
+    //2)Search most relevant documents from our vector database
+    const collection = await getCollection("insurance_embeddings");
+    const pipeline = buildAggregationPipeline(queryEmbedding);
+
+    const results = await collection.aggregate(pipeline).toArray();
+    if (results.length === 0) {
+      return res.status(200).json({
+        status: "success",
+        message: "No relevant information found",
+      });
+    }
+    //A-Augmentation
+    //3)Combine top results into context
+    const context = results.map((item) => item.text).join("\n\n");
+    //4)Send to our LLM to get the answer
+    const answer = await getAnswerFromLLM(question, context);
+
+    //if the code runs till here, everything is fine we have no error
+    res.status(200).json({
+      status: "success",
+      message: answer,
+    });
+  } catch (err) {
+    console.error("Error processing insurance query:", err);
+  }
+});
+
+//start the server
+const port = process.env.PORT || 9000;
+const server = app.listen(port, () => {
+  console.log(`App running on port ${port}...`);
+});
+
 export default app;

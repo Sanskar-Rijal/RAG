@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
 
-dotenv.config({ path: "../config.env" });
+dotenv.config({ path: "./config.env" });
 
 //connect to our database
 const DB = process.env.DATABASE.replace(
