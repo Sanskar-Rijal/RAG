@@ -37,7 +37,8 @@ Create a file named `config.env` and add:
 
 ```env
 PORT=8080
-MONGO_URI=your_mongodb_connection_string
+DATABASE_PASSWORD=...
+DATABASE=mongo db uri
 GEMINI_API_KEY=your_gemini_api_key
 NODE_ENV=development
 ```
@@ -86,7 +87,7 @@ Body:
 
 ```json
 {
-  "query": "What is the coverage of policy P123?"
+  "question": "What is the coverage of policy P123?"
 }
 ```
 
